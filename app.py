@@ -14,6 +14,37 @@ from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 
+
+import os
+from pathlib import Path
+
+# Set NLTK data path to a directory in your project
+nltk_data_dir = Path('./nltk_data')
+nltk_data_dir.mkdir(exist_ok=True)
+nltk.data.path.append(str(nltk_data_dir))
+
+# Download NLTK data
+def ensure_nltk_data():
+    try:
+        nltk.data.find('tokenizers/punkt')
+    except LookupError:
+        nltk.download('punkt', download_dir=str(nltk_data_dir))
+    
+    try:
+        nltk.data.find('corpora/stopwords')
+    except LookupError:
+        nltk.download('stopwords', download_dir=str(nltk_data_dir))
+    
+    try:
+        nltk.data.find('corpora/wordnet')
+    except LookupError:
+        nltk.download('wordnet', download_dir=str(nltk_data_dir))
+
+# Call this function at startup
+ensure_nltk_data()
+
+# Rest of your code...
+
 # Download NLTK dependencies jika belum ada
 nltk.download('stopwords')
 nltk.download('punkt')
@@ -33,7 +64,6 @@ with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)  
 
 
-import os
 
 # Check if NLTK data exists, if not download it
 if not os.path.exists('/root/nltk_data/tokenizers/punkt'):
