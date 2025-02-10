@@ -61,4 +61,3 @@ if text.strip():
     predicted_class = np.argmax(prediksi, axis=1)[0]
     predicted_label = label_encoder.inverse_transform([predicted_class])[0]
     st.write("Hasil Prediksi (Class):", predicted_label)
-
