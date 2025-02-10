@@ -13,6 +13,8 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
+
+import os
 from pathlib import Path
 
 # Define custom directory for NLTK data
@@ -29,7 +31,7 @@ def ensure_nltk_data():
         try:
             nltk.data.find(f"tokenizers/{resource}" if resource == "punkt" else f"corpora/{resource}")
         except LookupError:
-            nltk.download(resource, download_dir=str(nltk_data_dir))
+            nltk.download(resource, download_dir=str(nltk_data_dir))  # Download to custom directory
 
 # Call this function at startup
 ensure_nltk_data()
@@ -48,15 +50,21 @@ with open('maxlen.pkl', 'rb') as handle:
 
 # Preprocessing Text
 def preprocessing_text(text):
-    text = text.lower()
-    text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
-    text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)
-    words = word_tokenize(text)
-    stop_words = set(stopwords.words('english'))
+    text = text.lower()  # Convert to lowercase
+    text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)  # Remove links
+    text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)  # Remove special characters
+
+    try:
+        words = word_tokenize(text)  # Tokenize text
+    except LookupError:
+        st.error("Data NLTK 'punkt' tidak ditemukan. Pastikan data tersebut diunduh.")
+        raise
+
+    stop_words = set(stopwords.words('english'))  # Define stopwords
     words = [word for word in words if word not in stop_words or word in ['not', 'no', "n't"] and word != '']
-    lemmatizer = WordNetLemmatizer()
-    words = [lemmatizer.lemmatize(word) for word in words]
-    return ' '.join(words)
+    lemmatizer = WordNetLemmatizer()  # Initialize lemmatizer
+    words = [lemmatizer.lemmatize(word) for word in words]  # Lemmatize words
+    return ' '.join(words)  # Rejoin words
 
 # Streamlit UI
 st.title('Klasifikasi Jenis Pertanyaan Menggunakan Machine Learning')
@@ -90,27 +98,29 @@ with tab1:
 
         st.write("Hasil Prediksi (Class):", predicted_label)
         st.write(f"Deskripsi Class: {label_descriptions.get(predicted_label, 'Tidak ada deskripsi tersedia.')}")
-    else:
-        st.error("Masukkan pertanyaan terlebih dahulu.")
 
 with tab2:
-    if text.strip():
+    if text.strip():  
+        # Daftar kelas
         classes = label_encoder.classes_
-        probabilities = prediksi[0]
 
-        fig, ax = plt.subplots()
-        ax.bar(classes, probabilities, color='skyblue')
-        ax.set_title('Distribusi Prediksi')
-        ax.set_ylabel('Probabilitas')
-        ax.set_xlabel('Kelas')
+        # Konversi ke persentase
+        predictions_with_classes = {cls: f"{prob * 100:.2f}%" for cls, prob in zip(classes, prediksi[0])}
 
-        st.pyplot(fig)
+        # Tampilkan hasil
+        for cls, prob in predictions_with_classes.items():
+            st.write(f"{cls}: {prob}")
     else:
-        st.error("Masukkan Pertanyaan Terlebih Dahulu!")
+        st.write("Masukkan Pertanyaan Terlebih Dahulu!")
 
 with tab3:
     from PIL import Image
+
+    # Load the image
     image = Image.open(r"Grafik.png")
+
+    # Display the image
     st.image(image, caption="Grafik Model", use_column_width=True)
+
 
 
