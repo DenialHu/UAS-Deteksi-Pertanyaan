@@ -18,13 +18,17 @@ from nltk.stem import WordNetLemmatizer
 import os
 from pathlib import Path
 
-# Define a custom NLTK data directory
+# Define custom directory for NLTK data
 nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
 
-# Add the directory to NLTK's path
+# Add this directory to NLTK's path
 nltk.data.path.append(str(nltk_data_dir))
-# Download NLTK data
+
+# Manually specify the Punkt tokenizer path
+os.environ["NLTK_DATA"] = str(nltk_data_dir)
+
+# Ensure required NLTK resources are available
 def ensure_nltk_data():
     resources = ["punkt", "stopwords", "wordnet"]
     
@@ -34,6 +38,8 @@ def ensure_nltk_data():
         except LookupError:
             print(f"Downloading {resource}...")
             nltk.download(resource, download_dir=str(nltk_data_dir))
+
+# Run before tokenizing
 
 
 # Call this function at startup
