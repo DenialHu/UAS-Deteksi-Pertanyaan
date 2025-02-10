@@ -17,6 +17,7 @@ from pathlib import Path
 nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
 nltk.data.path.append(str(nltk_data_dir))
+nltk.download('punkt', download_dir='./nltk_data')
 
 def ensure_nltk_resources():
     resources = ["punkt", "stopwords", "wordnet"]
