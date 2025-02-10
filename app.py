@@ -22,13 +22,14 @@ nltk.download('wordnet')
 # Load Model, Tokenizer, Class, & maxlen
 model_prediksi = keras.models.load_model('sentimen_model.h5')
 
-with open(r"tokenizer.pkl", 'rb') as handle:
+with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
 
-with open(r"label_encoder.pkl", 'rb') as handle:
+with open('label_encoder.pkl', 'rb') as handle:
     label_encoder = pickle.load(handle)
 
-with open(r"maxlen.pkl", 'rb') as handle:
+
+with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)  
 
 # Preprocessing Text
