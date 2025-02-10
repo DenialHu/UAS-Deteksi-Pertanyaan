@@ -18,6 +18,12 @@ from nltk.stem import WordNetLemmatizer
 import os
 from pathlib import Path
 
+try:
+    nltk.data.find('tokenizers/punkt')
+except LookupError:
+    with st.spinner('Downloading required NLTK data...'):
+        nltk.download('punkt')
+
 # Set NLTK data path to a directory in your project
 nltk_data_dir = Path('./nltk_data')
 nltk_data_dir.mkdir(exist_ok=True)
