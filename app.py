@@ -18,42 +18,27 @@ from nltk.stem import WordNetLemmatizer
 import os
 from pathlib import Path
 
-try:
-    nltk.data.find('punkt')
-except LookupError:
-    nltk.download('punkt')
-    
-# Set NLTK data path to a directory in your project
-nltk_data_dir = Path('./nltk_data')
+# Define a custom NLTK data directory
+nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
-nltk.data.path.append(str(nltk_data_dir))
 
+# Add the directory to NLTK's path
+nltk.data.path.append(str(nltk_data_dir))
 # Download NLTK data
 def ensure_nltk_data():
-    try:
-        nltk.data.find('tokenizers/punkt')
-    except LookupError:
-        nltk.download('punkt', download_dir=str(nltk_data_dir))
+    resources = ["punkt", "stopwords", "wordnet"]
     
-    try:
-        nltk.data.find('corpora/stopwords')
-    except LookupError:
-        nltk.download('stopwords', download_dir=str(nltk_data_dir))
-    
-    try:
-        nltk.data.find('corpora/wordnet')
-    except LookupError:
-        nltk.download('wordnet', download_dir=str(nltk_data_dir))
+    for resource in resources:
+        try:
+            nltk.data.find(f"tokenizers/{resource}" if resource == "punkt" else f"corpora/{resource}")
+        except LookupError:
+            print(f"Downloading {resource}...")
+            nltk.download(resource, download_dir=str(nltk_data_dir))
+
 
 # Call this function at startup
 ensure_nltk_data()
 
-# Rest of your code...
-
-# Download NLTK dependencies jika belum ada
-nltk.download('stopwords')
-nltk.download('punkt')
-nltk.download('wordnet')
 
 # Load Model, Tokenizer, Class, & maxlen
 model_prediksi = keras.models.load_model('sentimen_model.h5')
