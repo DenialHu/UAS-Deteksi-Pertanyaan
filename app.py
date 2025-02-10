@@ -20,7 +20,7 @@ nltk.download('punkt')
 nltk.download('wordnet')
 
 # Load Model, Tokenizer, Class, & maxlen
-model_prediksi = keras.models.load_model(r'D:\UAS\sentimen_model.h5')
+model_prediksi = keras.models.load_model('sentimen_model.h5')
 
 with open(r"tokenizer.pkl", 'rb') as handle:
     tokenizer = pickle.load(handle)
