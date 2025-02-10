@@ -11,113 +11,54 @@ from tensorflow.keras.preprocessing.sequence import pad_sequences
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
-
-import os
 from pathlib import Path
 
-# Define custom directory for NLTK data
+# Pastikan resource NLTK tersedia
 nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
-
-# Add this directory to NLTK's path
 nltk.data.path.append(str(nltk_data_dir))
 
-# Ensure required NLTK resources are available
-def ensure_nltk_data():
+def ensure_nltk_resources():
     resources = ["punkt", "stopwords", "wordnet"]
     for resource in resources:
         try:
             nltk.data.find(f"tokenizers/{resource}" if resource == "punkt" else f"corpora/{resource}")
         except LookupError:
-            nltk.download(resource, download_dir=str(nltk_data_dir))  # Download to custom directory
+            nltk.download(resource, download_dir=str(nltk_data_dir))
 
-# Call this function at startup
-ensure_nltk_data()
+ensure_nltk_resources()
 
-# Load Model, Tokenizer, Class, & maxlen
+# Load model, tokenizer, dan lain-lain
 model_prediksi = keras.models.load_model('sentimen_model.h5')
-
 with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
-
 with open('label_encoder.pkl', 'rb') as handle:
     label_encoder = pickle.load(handle)
-
 with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)
 
-# Preprocessing Text
+# Preprocessing function
 def preprocessing_text(text):
-    text = text.lower()  # Convert to lowercase
-    text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)  # Remove links
-    text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)  # Remove special characters
+    text = text.lower()
+    text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
+    text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)
 
-    # Tokenize text
-    try:
-        words = word_tokenize(text)  # Tokenize text
-    except LookupError:
-        nltk.download('punkt', download_dir=str(nltk_data_dir))
-        nltk.data.path.append(str(nltk_data_dir))
-        words = word_tokenize(text)  # Retry tokenizing text
-
-    stop_words = set(stopwords.words('english'))  # Define stopwords
+    words = word_tokenize(text)
+    stop_words = set(stopwords.words('english'))
     words = [word for word in words if word not in stop_words or word in ['not', 'no', "n't"] and word != '']
-    lemmatizer = WordNetLemmatizer()  # Initialize lemmatizer
-    words = [lemmatizer.lemmatize(word) for word in words]  # Lemmatize words
-    return ' '.join(words)  # Rejoin words
+    lemmatizer = WordNetLemmatizer()
+    words = [lemmatizer.lemmatize(word) for word in words]
+    return ' '.join(words)
 
-# Streamlit UI
+# Streamlit app
 st.title('Klasifikasi Jenis Pertanyaan Menggunakan Machine Learning')
+text = st.text_input("Masukkan Pertanyaan:", key="input1")
+if text.strip():
+    text_prepared = preprocessing_text(text)
+    sequence_testing = tokenizer.texts_to_sequences([text_prepared])
+    padded_testing = pad_sequences(sequence_testing, maxlen=maxlen, padding='post')
+    prediksi = model_prediksi.predict(padded_testing)
+    predicted_class = np.argmax(prediksi, axis=1)[0]
+    predicted_label = label_encoder.inverse_transform([predicted_class])[0]
+    st.write("Hasil Prediksi (Class):", predicted_label)
 
-tab1, tab2, tab3 = st.tabs(['Masukkan Pertanyaan', 'Presentase Prediksi Teks', 'Grafik Model'])
-
-with tab1:
-    text = st.text_input("Masukkan Pertanyaan:", key="input1")
-    if text.strip():
-        text_testing = [text]
-
-        # Preprocessing
-        text_prepared = preprocessing_text(text_testing[0])
-        sequence_testing = tokenizer.texts_to_sequences([text_prepared])
-        padded_testing = pad_sequences(sequence_testing, maxlen=maxlen, padding='post')
-
-        # Prediksi
-        prediksi = model_prediksi.predict(padded_testing)
-        predicted_class = np.argmax(prediksi, axis=1)[0]
-        predicted_label = label_encoder.inverse_transform([predicted_class])[0]
-
-        # Label Descriptions
-        label_descriptions = {
-            'DESC': 'Class DESC untuk mendeskripsikan sesuatu.',
-            'ENTY': 'Class ENTY untuk mengenali entitas atau kategori tertentu.',
-            'ABBR': 'Class ABBR untuk mendeteksi singkatan atau akronim.',
-            'HUM': 'Class HUM untuk mengenali pertanyaan yang berhubungan dengan manusia.',
-            'NUM': 'Class NUM untuk mengenali pertanyaan yang membutuhkan jawaban berupa angka.',
-            'LOC': 'Class LOC untuk menentukan suatu lokasi.'
-        }
-
-        st.write("Hasil Prediksi (Class):", predicted_label)
-        st.write(f"Deskripsi Class: {label_descriptions.get(predicted_label, 'Tidak ada deskripsi tersedia.')}")
-
-with tab2:
-    if text.strip():  
-        # Daftar kelas
-        classes = label_encoder.classes_
-
-        # Konversi ke persentase
-        predictions_with_classes = {cls: f"{prob * 100:.2f}%" for cls, prob in zip(classes, prediksi[0])}
-
-        # Tampilkan hasil
-        for cls, prob in predictions_with_classes.items():
-            st.write(f"{cls}: {prob}")
-    else:
-        st.write("Masukkan Pertanyaan Terlebih Dahulu!")
-
-with tab3:
-    from PIL import Image
-
-    # Load the image
-    image = Image.open(r"Grafik.png")
-
-    # Display the image
-    st.image(image, caption="Grafik Model", use_column_width=True)
