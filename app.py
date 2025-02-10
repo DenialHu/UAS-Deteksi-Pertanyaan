@@ -32,6 +32,17 @@ with open('label_encoder.pkl', 'rb') as handle:
 with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)  
 
+
+import os
+
+# Check if NLTK data exists, if not download it
+if not os.path.exists('/root/nltk_data/tokenizers/punkt'):
+    nltk.download('punkt')
+if not os.path.exists('/root/nltk_data/corpora/stopwords'):
+    nltk.download('stopwords')
+if not os.path.exists('/root/nltk_data/corpora/wordnet'):
+    nltk.download('wordnet')
+
 # Preprocessing Text
 def preprocessing_text(text):
     text = text.lower()  # Huruf kecil
