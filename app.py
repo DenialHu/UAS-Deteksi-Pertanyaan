@@ -1,14 +1,12 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import matplotlib.pyplot as plt
 import tensorflow as tf
 import re
 import pickle
 import nltk
 
 from tensorflow import keras
-from tensorflow.keras.preprocessing.text import Tokenizer
 from tensorflow.keras.preprocessing.sequence import pad_sequences
 from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
@@ -54,11 +52,13 @@ def preprocessing_text(text):
     text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)  # Remove links
     text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)  # Remove special characters
 
+    # Tokenize text
     try:
         words = word_tokenize(text)  # Tokenize text
     except LookupError:
-        st.error("Data NLTK 'punkt' tidak ditemukan. Pastikan data tersebut diunduh.")
-        raise
+        nltk.download('punkt', download_dir=str(nltk_data_dir))
+        nltk.data.path.append(str(nltk_data_dir))
+        words = word_tokenize(text)  # Retry tokenizing text
 
     stop_words = set(stopwords.words('english'))  # Define stopwords
     words = [word for word in words if word not in stop_words or word in ['not', 'no', "n't"] and word != '']
@@ -121,6 +121,3 @@ with tab3:
 
     # Display the image
     st.image(image, caption="Grafik Model", use_column_width=True)
-
-
-
