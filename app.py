@@ -13,38 +13,45 @@ from nltk.tokenize import word_tokenize
 from nltk.stem import WordNetLemmatizer
 from pathlib import Path
 
-
-# Ensure the nltk_data directory exists
+# Explicitly set the directory for NLTK data
 nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
-nltk.data.path.append(str(nltk_data_dir))
+nltk.data.path.append(str(nltk_data_dir))  # Set NLTK path
 
+# Ensure punkt is available
+try:
+    nltk.data.find("tokenizers/punkt")
+    print("Punkt tokenizer is already available.")
+except LookupError:
+    print("Downloading punkt tokenizer...")
+    nltk.download("punkt", download_dir=str(nltk_data_dir))
+
+# Re-check if Punkt tokenizer exists
+if not (nltk_data_dir / "tokenizers" / "punkt").exists():
+    print("Downloading punkt again...")
+    nltk.download("punkt", download_dir=str(nltk_data_dir))
+
+# Load or create the tokenizer
 tokenizer_path = "punkt_tokenizer.pkl"
-
 
 try:
     with open(tokenizer_path, "rb") as f:
         tokenizer = pickle.load(f)
     print("Loaded Punkt tokenizer from punkt_tokenizer.pkl")
-except (FileNotFoundError, LookupError):
-    print("punkt_tokenizer.pkl not found. Downloading and saving tokenizer...")
-    nltk.download("punkt", download_dir=str(nltk_data_dir))
-
-    # Create and save the tokenizer
+except FileNotFoundError:
+    print("Saving new Punkt tokenizer...")
     punkt_tokenizer = nltk.tokenize.PunktSentenceTokenizer()
     with open(tokenizer_path, "wb") as f:
         pickle.dump(punkt_tokenizer, f)
+    tokenizer = punkt_tokenizer  # Assign tokenizer
 
-    tokenizer = punkt_tokenizer  # Assign it to tokenizer
-
-
-print("Punkt tokenizer is ready to use!")
+print("Punkt tokenizer is ready!")
 
 # Example usage
 text = "This is a test sentence. Here is another one!"
 sentences = tokenizer.tokenize(text)
-st.title(sentences)
 print(sentences)
+
     
 
 # Load model, tokenizer, dan lain-lain
