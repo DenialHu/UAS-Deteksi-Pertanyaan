@@ -23,19 +23,12 @@ nltk.download("punkt", download_dir=nltk_data_path)
 nltk.download("stopwords", download_dir=nltk_data_path)
 nltk.download("wordnet", download_dir=nltk_data_path)
 
-# Load model dependencies
-MODEL_PATH = "/mount/src/uas-deteksi-pertanyaan/sentimen_model.h5"
-TOKENIZER_PATH = "/mount/src/uas-deteksi-pertanyaan/tokenizer.pkl"
-LABEL_ENCODER_PATH = "/mount/src/uas-deteksi-pertanyaan/label_encoder.pkl"
-MAXLEN_PATH = "/mount/src/uas-deteksi-pertanyaan/maxlen.pkl"
 
-model_prediksi = keras.models.load_model(MODEL_PATH)
-
-with open(TOKENIZER_PATH, 'rb') as handle:
+with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
-with open(LABEL_ENCODER_PATH, 'rb') as handle:
+with open('label_encoder.pkl', 'rb') as handle:
     label_encoder = pickle.load(handle)
-with open(MAXLEN_PATH, 'rb') as handle:
+with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)
 
 # Preprocessing function
