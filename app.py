@@ -26,8 +26,7 @@ nltk.download("wordnet", download_dir=nltk_data_path)
 
 with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
-with open('label_encoder.pkl', 'rb') as handle:
-    label_encoder = pickle.load(handle)
+
 with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)
 
