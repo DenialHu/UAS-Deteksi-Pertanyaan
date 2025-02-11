@@ -14,9 +14,13 @@ from nltk.stem import WordNetLemmatizer
 from pathlib import Path
 
 # Ensure NLTK dependencies are available every run
-nltk_data_dir = Path("./nltk_data")
-nltk_data_dir.mkdir(exist_ok=True)
-nltk.data.path.append(str(nltk_data_dir))
+
+nltk.data.path.append("/tmp")
+
+# Download required NLTK resources every run
+nltk.download("punkt", download_dir="/tmp")
+nltk.download("stopwords", download_dir="/tmp")
+nltk.download("wordnet", download_dir="/tmp")
 
 try:
     nltk.data.find("tokenizers/punkt")
@@ -39,10 +43,8 @@ with open('maxlen.pkl', 'rb') as handle:
     maxlen = pickle.load(handle)
 
 # Preprocessing function
+# Preprocessing function
 def preprocessing_text(text):
-    nltk.download('stopwords')
-    nltk.download('wordnet')
-    
     text = text.lower()
     text = re.sub(r'http\S+|www\S+|https\S+', '', text, flags=re.MULTILINE)
     text = re.sub(r'[^a-zA-Z0-9\s\?!.,\'"]', '', text)
@@ -60,6 +62,7 @@ text = st.text_input("Masukkan Pertanyaan:", key="input1")
 
 if text.strip():
     text_prepared = preprocessing_text(text)
+    st.write("Processed Text:", text_prepared)
     sequence_testing = tokenizer.texts_to_sequences([text_prepared])
     padded_testing = pad_sequences(sequence_testing, maxlen=maxlen, padding='post')
     prediksi = model_prediksi.predict(padded_testing)
