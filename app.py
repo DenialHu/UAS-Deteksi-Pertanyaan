@@ -17,20 +17,25 @@ from pathlib import Path
 nltk_data_dir = Path("./nltk_data")
 nltk_data_dir.mkdir(exist_ok=True)
 nltk.data.path.append(str(nltk_data_dir))
-nltk.download('punkt', download_dir='./nltk_data')
 
-def ensure_nltk_resources():
-    resources = ["punkt", "stopwords", "wordnet"]
-    for resource in resources:
-        try:
-            nltk.data.find(f"tokenizers/{resource}" if resource == "punkt" else f"corpora/{resource}")
-        except LookupError:
-            nltk.download(resource, download_dir=str(nltk_data_dir))
-
-ensure_nltk_resources()
+# Load tokenizer from .pkl file instead of downloading
+try:
+    with open("punkt_tokenizer.pkl", "rb") as f:
+        tokenizer = pickle.load(f)
+    print("Loaded punkt tokenizer from punkt_tokenizer.pkl")
+except FileNotFoundError:
+    print("punkt_tokenizer.pkl not found. Downloading and saving tokenizer...")
+    nltk.download('punkt', download_dir=str(nltk_data_dir))
+    
+    # Save punkt tokenizer to .pkl file
+    punkt_tokenizer = nltk.tokenize.PunktSentenceTokenizer()
+    with open("punkt_tokenizer.pkl", "wb") as f:
+        pickle.dump(punkt_tokenizer, f)
+    
 
 # Load model, tokenizer, dan lain-lain
 model_prediksi = keras.models.load_model('sentimen_model.h5')
+
 with open('tokenizer.pkl', 'rb') as handle:
     tokenizer = pickle.load(handle)
 with open('label_encoder.pkl', 'rb') as handle:
@@ -46,7 +51,10 @@ def preprocessing_text(text):
 
     words = word_tokenize(text)
     stop_words = set(stopwords.words('english'))
-    words = [word for word in words if word not in stop_words or word in ['not', 'no', "n't"] and word != '']
+    
+    # Proper stopword filtering
+    words = [word for word in words if (word not in stop_words or word in ['not', 'no', "n't"]) and word != '']
+    
     lemmatizer = WordNetLemmatizer()
     words = [lemmatizer.lemmatize(word) for word in words]
     return ' '.join(words)
@@ -56,9 +64,12 @@ st.title('Klasifikasi Jenis Pertanyaan Menggunakan Machine Learning')
 text = st.text_input("Masukkan Pertanyaan:", key="input1")
 if text.strip():
     text_prepared = preprocessing_text(text)
+    
     sequence_testing = tokenizer.texts_to_sequences([text_prepared])
     padded_testing = pad_sequences(sequence_testing, maxlen=maxlen, padding='post')
+    
     prediksi = model_prediksi.predict(padded_testing)
     predicted_class = np.argmax(prediksi, axis=1)[0]
     predicted_label = label_encoder.inverse_transform([predicted_class])[0]
+    
     st.write("Hasil Prediksi (Class):", predicted_label)
