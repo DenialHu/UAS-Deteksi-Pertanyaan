@@ -2,47 +2,42 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import tensorflow as tf
+import os
 import re
 import pickle
 import nltk
 
 from tensorflow import keras
 from tensorflow.keras.preprocessing.sequence import pad_sequences
-from nltk.corpus import stopwords
 from nltk.tokenize import word_tokenize
+from nltk.corpus import stopwords
 from nltk.stem import WordNetLemmatizer
-from pathlib import Path
 
-# Ensure NLTK dependencies are available every run
+# Set NLTK data path to /tmp (writable on Streamlit Cloud)
+nltk_data_path = "/tmp/nltk_data"
+os.makedirs(nltk_data_path, exist_ok=True)
+nltk.data.path.append(nltk_data_path)
 
-nltk.data.path.append("/tmp")
+# Force-download required NLTK resources every run
+nltk.download("punkt", download_dir=nltk_data_path)
+nltk.download("stopwords", download_dir=nltk_data_path)
+nltk.download("wordnet", download_dir=nltk_data_path)
 
-# Download required NLTK resources every run
-nltk.download("punkt", download_dir="/tmp")
-nltk.download("stopwords", download_dir="/tmp")
-nltk.download("wordnet", download_dir="/tmp")
+# Load model dependencies
+MODEL_PATH = "/mount/src/uas-deteksi-pertanyaan/sentimen_model.h5"
+TOKENIZER_PATH = "/mount/src/uas-deteksi-pertanyaan/tokenizer.pkl"
+LABEL_ENCODER_PATH = "/mount/src/uas-deteksi-pertanyaan/label_encoder.pkl"
+MAXLEN_PATH = "/mount/src/uas-deteksi-pertanyaan/maxlen.pkl"
 
-try:
-    nltk.data.find("tokenizers/punkt")
-    print("Punkt tokenizer is already available.")
-except LookupError:
-    print("Downloading punkt tokenizer...")
-    nltk.download("punkt")
+model_prediksi = keras.models.load_model(MODEL_PATH)
 
-# Load punkt tokenizer manually
-punkt_tokenizer = nltk.tokenize.PunktSentenceTokenizer()
-
-# Load other model dependencies
-model_prediksi = keras.models.load_model('sentimen_model.h5')
-
-with open('tokenizer.pkl', 'rb') as handle:
+with open(TOKENIZER_PATH, 'rb') as handle:
     tokenizer = pickle.load(handle)
-with open('label_encoder.pkl', 'rb') as handle:
+with open(LABEL_ENCODER_PATH, 'rb') as handle:
     label_encoder = pickle.load(handle)
-with open('maxlen.pkl', 'rb') as handle:
+with open(MAXLEN_PATH, 'rb') as handle:
     maxlen = pickle.load(handle)
 
-# Preprocessing function
 # Preprocessing function
 def preprocessing_text(text):
     text = text.lower()
